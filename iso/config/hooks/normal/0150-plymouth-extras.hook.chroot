@@ -1,0 +1,5 @@
+#!/bin/sh
+# Optional extras: silences the plymouth label warning and makes the initramfs smaller. Never fails the build.
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y --no-install-recommends plymouth-label zstd || echo "[extras] optional packages unavailable; continuing"
+exit 0

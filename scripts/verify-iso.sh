@@ -22,8 +22,9 @@ echo "ok   GRUB menu hidden, splash enabled"
 K=$(sed -n 's#^ *linux  */live/\([^ ]*\).*#\1#p' "$T/grub.cfg" | head -1)
 R=$(sed -n 's#^ *initrd  */live/\([^ ]*\).*#\1#p' "$T/grub.cfg" | head -1)
 [ -n "$K" ] && [ -n "$R" ] || fail "could not read kernel/initrd paths from grub.cfg"
+NAMES="$(printf '%s\n' "$LIVE" | tr "' " '\n\n' | sed 's#.*/##')"   # fixed-string, one name per line (kernel names contain '+' and '.')
 for n in "$K" "$R"; do
-  grep -Eq "(^|[ '/])$n(['/ ]|$)" <<<"$LIVE" || { echo "listing of /live:"; echo "$LIVE"; fail "grub.cfg boots /live/$n but it does not exist in the ISO"; }
+  grep -Fxq -- "$n" <<<"$NAMES" || { echo "listing of /live:"; echo "$LIVE"; fail "grub.cfg boots /live/$n but it does not exist in the ISO"; }
 done
 echo "ok   grub.cfg boots /live/$K + /live/$R and both exist in the ISO"
 unsquashfs -l "$T/fs.squashfs" > "$T/list.txt" || fail "unsquashfs could not list the image"
