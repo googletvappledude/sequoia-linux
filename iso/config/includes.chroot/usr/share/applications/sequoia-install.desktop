@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Install Sequoia Linux
+Comment=Install this system to your computer
+Exec=sudo -E calamares
+Icon=calamares
+Terminal=false
+Categories=System;

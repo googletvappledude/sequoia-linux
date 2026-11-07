@@ -13,10 +13,12 @@ Legend: BUILT = code written; TESTED = actually executed; none of the desktop pi
 | Logo menu plasmoid, video wallpaper plugin | BUILT, NOT TESTED (QML only linted in CI) |
 | Dock (layer-shell, magnification, menus, autohide) | BUILT, NOT COMPILED yet; CI `components` job is the first compile |
 | GitHub Actions: checks -> components -> iso -> verify -> upload | BUILT, NOT RUN |
-| ISO | NOT BUILT yet. Dev sandbox has no network/live-build; CI must do it |
+| ISO | Built by CI (1.6 GB). Boot/UI behaviour NOT yet observed by me |
+| Installer (Calamares from calamares-settings-debian + our hook) | BUILT, NOT TESTED. Launcher: desktop icon (live only) + menu entry `Install Sequoia Linux` |
+| Live autologin | Live-only systemd service; file is never in the image, so installed systems don't autologin |
 
 ## Not started
-Finder (custom file manager), Control Centre, System Settings app, notification styling, window decoration (traffic lights, rounded corners), Calamares config (must also delete `20-live-autologin.conf` on the target), widgets, other apps' theming.
+Finder (custom file manager), Control Centre, System Settings app, notification styling, window decoration (traffic lights, rounded corners), Calamares branding (uses Debian's), widgets, other apps' theming.
 
 ## Known limitations / risks
 - Wallpaper source video is 1280x720: low resolution on large displays.
@@ -24,3 +26,8 @@ Finder (custom file manager), Control Centre, System Settings app, notification 
 - LUKS disk encryption unsupported until Plymouth gets a password prompt (conflicts with "no text").
 - Plasma layout JS `panel.opacity` may not exist in Plasma 6.3 (wrapped in try/catch).
 - SF fonts and the startup sound may carry licences that forbid redistribution; keep the repo and ISOs private.
+
+## Installer limitations
+- Secure Boot: not supported; disable it in firmware. No LUKS encryption. BIOS and UEFI installs are untested.
+- Installed GRUB menu is hidden with a 2 s window (Shift/Esc shows it). Dual-boot: other systems are detected by os-prober but the menu stays hidden.
+- Test only in a VM with a blank virtual disk first. Never test the installer on a disk with data you need.

@@ -10,6 +10,6 @@ done
 for d in /usr/share/sequoia/kpackages/look-and-feel/*; do
   [ -d "$d" ] && mkdir -p /usr/share/plasma/look-and-feel && cp -r "$d" /usr/share/plasma/look-and-feel/
 done
-systemctl enable sddm.service NetworkManager.service bluetooth.service
+systemctl enable sddm.service NetworkManager.service bluetooth.service sequoia-live-autologin.service
 # One-shot startup sound: enabled for every user session by default (user can mask via Settings)
 systemctl --global enable sequoia-startup-sound.service

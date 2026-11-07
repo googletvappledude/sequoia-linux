@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Sequoia live installer icon
+Exec=/usr/lib/sequoia/live-installer-icon
+NoDisplay=true
+OnlyShowIn=KDE;

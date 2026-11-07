@@ -37,3 +37,15 @@ haruna
 okular
 calamares
 calamares-settings-debian
+grub-common
+grub-pc-bin
+grub-efi-amd64-bin
+efibootmgr
+os-prober
+parted
+gdisk
+dosfstools
+e2fsprogs
+ntfs-3g
+rsync
+udisks2

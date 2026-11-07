@@ -1,0 +1,8 @@
+#!/bin/sh
+# Put an installer icon on the desktop, but only in a live session.
+MARK="${SEQUOIA_LIVE_MARKER:-/run/live}"
+[ -d "$MARK" ] || exit 0
+D="${SEQUOIA_DESKTOP_DIR:-$HOME/Desktop}"
+mkdir -p "$D"
+cp "${SEQUOIA_LAUNCHER:-/usr/share/applications/sequoia-install.desktop}" "$D/sequoia-install.desktop"
+chmod +x "$D/sequoia-install.desktop"

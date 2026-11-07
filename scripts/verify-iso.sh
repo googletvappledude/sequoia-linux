@@ -11,17 +11,24 @@ if ! command -v xorriso >/dev/null || ! command -v unsquashfs >/dev/null; then
   export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq xorriso squashfs-tools >/dev/null
 fi
 LIVE="$(xorriso -indev "$ISO" -ls /live 2>/dev/null || true)"
-for f in vmlinuz initrd.img filesystem.squashfs; do
-  grep -q "$f" <<<"$LIVE" || fail "/live/$f missing in ISO (GRUB entry would not boot)"
-done
-echo "ok   /live has vmlinuz, initrd.img, filesystem.squashfs"
+grep -q "filesystem.squashfs" <<<"$LIVE" || fail "/live/filesystem.squashfs missing in ISO"
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 xorriso -osirrox on -indev "$ISO" -extract /boot/grub/grub.cfg "$T/grub.cfg" \
         -extract /live/filesystem.squashfs "$T/fs.squashfs" >/dev/null 2>&1 || fail "could not extract grub.cfg / filesystem.squashfs"
 grep -q 'timeout=0' "$T/grub.cfg"        || fail "GRUB menu not hidden (timeout=0 missing)"
 grep -q 'splash'    "$T/grub.cfg"        || fail "splash missing from kernel command line"
 echo "ok   GRUB menu hidden, splash enabled"
-unsquashfs -l "$T/fs.squashfs" > "$T/list.txt"
+# The kernel/initrd that grub.cfg points at must exist EXACTLY in /live (a loose match let a wrong name through once)
+K=$(sed -n 's#^ *linux  */live/\([^ ]*\).*#\1#p' "$T/grub.cfg" | head -1)
+R=$(sed -n 's#^ *initrd  */live/\([^ ]*\).*#\1#p' "$T/grub.cfg" | head -1)
+[ -n "$K" ] && [ -n "$R" ] || fail "could not read kernel/initrd paths from grub.cfg"
+for n in "$K" "$R"; do
+  grep -Eq "(^|[ '/])$n(['/ ]|$)" <<<"$LIVE" || { echo "listing of /live:"; echo "$LIVE"; fail "grub.cfg boots /live/$n but it does not exist in the ISO"; }
+done
+echo "ok   grub.cfg boots /live/$K + /live/$R and both exist in the ISO"
+unsquashfs -l "$T/fs.squashfs" > "$T/list.txt" || fail "unsquashfs could not list the image"
+echo "squashfs entries listed: $(wc -l < "$T/list.txt")"
+missing=()
 for f in usr/share/sequoia/logo.svg usr/share/sequoia/startup-sound.wav usr/share/sequoia/Hidden-Forest.mp4 \
          usr/share/sequoia/wallpaper-still.jpg usr/share/plymouth/themes/sequoia/logo.png \
          usr/share/plymouth/themes/sequoia/sequoia.script usr/lib/sequoia/startup-sound \
@@ -30,9 +37,25 @@ for f in usr/share/sequoia/logo.svg usr/share/sequoia/startup-sound.wav usr/shar
          usr/share/plasma/wallpapers/org.sequoia.videowallpaper/metadata.json \
          usr/share/plasma/look-and-feel/org.sequoia.desktop/metadata.json \
          usr/share/sddm/themes/sequoia/Main.qml usr/share/color-schemes/SequoiaLight.colors \
-         usr/share/fonts/opentype/sequoia/SF-Pro-Text-Regular.otf etc/sddm.conf.d/20-live-autologin.conf; do
-  grep -Fxq "squashfs-root/$f" "$T/list.txt" && echo "ok   $f" || fail "missing in image: $f"
+         usr/share/fonts/opentype/sequoia/SF-Pro-Text-Regular.otf usr/lib/sequoia/live-autologin usr/lib/systemd/system/sequoia-live-autologin.service \
+         usr/share/applications/sequoia-install.desktop etc/xdg/autostart/sequoia-live-installer-icon.desktop \
+         usr/bin/calamares etc/calamares/settings.conf etc/default/grub usr/lib/grub/x86_64-efi/grub.efi usr/lib/grub/i386-pc/boot.img; do
+  if grep -Fxq "squashfs-root/$f" "$T/list.txt" || grep -Fxq "$f" "$T/list.txt"; then echo "ok   $f"
+  else echo "MISSING $f"; missing+=("$f"); fi
 done
+if [ "${#missing[@]}" -gt 0 ]; then
+  echo "--- diagnostics ---"
+  echo "first 5 listing lines:"; head -5 "$T/list.txt"
+  echo "listing lines containing 'sequoia' (max 40):"; grep -i sequoia "$T/list.txt" | head -40 || true
+  echo "listing lines under usr/share/plymouth (max 10):"; grep 'usr/share/plymouth' "$T/list.txt" | head -10 || true
+  fail "${#missing[@]} file(s) missing from the image: ${missing[*]}"
+fi
+if grep -Fxq "squashfs-root/etc/sddm.conf.d/20-live-autologin.conf" "$T/list.txt"; then fail "live autologin file is baked into the image (would be installed too)"; fi
+echo "ok   no live autologin file baked into the image"
+unsquashfs -d "$T/c" -f "$T/fs.squashfs" etc/calamares/modules/removeuser.conf etc/default/grub >/dev/null 2>&1 || true
+grep -q '^username: live' "$T/c/etc/calamares/modules/removeuser.conf" 2>/dev/null || fail "Calamares removeuser is not set to remove the live user"
+grep -q 'splash' "$T/c/etc/default/grub" 2>/dev/null || fail "/etc/default/grub lacks splash for installed systems"
+echo "ok   installer removes live user; installed GRUB config has splash"
 unsquashfs -d "$T/x" -f "$T/fs.squashfs" usr/share/sequoia/logo.svg usr/share/sequoia/startup-sound.wav usr/share/sequoia/Hidden-Forest.mp4 >/dev/null
 for a in logo.svg startup-sound.wav Hidden-Forest.mp4; do
   cmp "$T/x/usr/share/sequoia/$a" "$HERE/assets/originals/$a" || fail "$a differs from supplied asset"

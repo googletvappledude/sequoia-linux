@@ -12,6 +12,10 @@ cp -a "$ROOT/iso/." "$WORK/"
 S="$WORK/config/includes.chroot/usr/share/sequoia"; mkdir -p "$S"
 cp "$ROOT"/assets/originals/{logo.svg,startup-sound.wav,Hidden-Forest.mp4,San-Francisco-Font.zip} "$S/"
 cp "$ROOT/assets/derived/hidden-forest-still.jpg" "$S/wallpaper-still.jpg"
+for a in logo.svg startup-sound.wav Hidden-Forest.mp4 San-Francisco-Font.zip wallpaper-still.jpg; do
+  [ -s "$S/$a" ] || { echo "ERROR: asset not copied into image overlay: $a" >&2; exit 1; }
+done
+echo "Assets staged for the image:"; ls -l "$S"
 # The dock .deb is produced by the 'components' CI job and dropped in components/out/
 mkdir -p "$WORK/config/packages.chroot"
 cp "$ROOT"/components/out/*.deb "$WORK/config/packages.chroot/" 2>/dev/null || echo "WARNING: no component .debs found"

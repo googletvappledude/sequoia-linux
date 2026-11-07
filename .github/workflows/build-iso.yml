@@ -13,6 +13,7 @@ jobs:
       - run: bash tests/test_startup_sound.sh
       - run: bash tests/test_assets.sh
       - run: bash tests/test_dock_package.sh
+      - run: bash tests/test_live_scripts.sh
 
   components:
     needs: checks
@@ -61,17 +62,20 @@ jobs:
           ISO=$(ls build/*.iso 2>/dev/null | head -n1 || true)
           [ -n "$ISO" ] || { echo "::error::No ISO produced"; exit 1; }
           echo "path=$ISO" >> "$GITHUB_OUTPUT"
-      - name: Verify ISO (exists, not empty, mandatory assets present)
-        run: docker run --rm -v "$PWD":/work -w /work debian:trixie bash scripts/verify-iso.sh "${{ steps.iso.outputs.path }}"
       - name: Checksum
         run: sha256sum "${{ steps.iso.outputs.path }}" | tee "${{ steps.iso.outputs.path }}.sha256"
+      - name: Verify ISO (exists, not empty, mandatory assets present)
+        id: verify
+        run: docker run --rm -v "$PWD":/work -w /work debian:trixie bash scripts/verify-iso.sh "${{ steps.iso.outputs.path }}"
       - name: Upload build log on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with: { name: build-log, path: build.log, if-no-files-found: ignore }
-      - uses: actions/upload-artifact@v4
+      - name: Upload ISO (named UNVERIFIED if the checks failed, so you can still test it)
+        if: always() && steps.iso.outputs.path != ''
+        uses: actions/upload-artifact@v4
         with:
-          name: sequoia-linux-iso
+          name: sequoia-linux-iso-${{ steps.verify.outcome == 'success' && 'verified' || 'UNVERIFIED' }}
           path: |
             build/*.iso
             build/*.iso.sha256

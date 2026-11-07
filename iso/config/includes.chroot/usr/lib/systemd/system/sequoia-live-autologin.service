@@ -1,0 +1,12 @@
+[Unit]
+Description=Sequoia live session autologin (live media only)
+ConditionPathExists=/run/live
+After=live-config.service
+Before=display-manager.service sddm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/sequoia/live-autologin
+
+[Install]
+WantedBy=multi-user.target

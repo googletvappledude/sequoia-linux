@@ -1,0 +1,5 @@
+#!/bin/sh
+# Live session only: enable SDDM autologin. Runs only when booted from live media.
+OUT="${SEQUOIA_AUTOLOGIN_FILE:-/etc/sddm.conf.d/20-live-autologin.conf}"
+mkdir -p "$(dirname "$OUT")"
+printf '[Autologin]\nUser=%s\nSession=plasma\nRelogin=false\n' "${SEQUOIA_LIVE_USER:-live}" > "$OUT"
