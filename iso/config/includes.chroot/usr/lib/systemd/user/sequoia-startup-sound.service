@@ -1,0 +1,13 @@
+[Unit]
+Description=Sequoia startup sound (once per boot)
+After=graphical-session.target pipewire.service wireplumber.service
+PartOf=graphical-session.target
+ConditionUser=!root
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/sequoia/startup-sound
+
+[Install]
+WantedBy=graphical-session.target

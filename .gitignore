@@ -1,0 +1,4 @@
+build/
+build-dock/
+components/out/
+build.log

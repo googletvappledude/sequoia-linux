@@ -1,0 +1,6 @@
+{
+  "KPlugin": { "Id": "org.sequoia.videowallpaper", "Name": "Sequoia Video Wallpaper", "Description": "Looping video wallpaper with static fallback",
+               "Version": "0.1.0", "Authors": [{ "Name": "Sequoia Linux" }] },
+  "KPackageStructure": "Plasma/Wallpaper",
+  "X-Plasma-API-Minimum-Version": "6.0"
+}

@@ -1,0 +1,17 @@
+#!/bin/sh
+# Install the supplied SF Pro fonts, rasterise logo.svg for Plymouth, refresh caches.
+set -e
+S=/usr/share/sequoia
+FD=/usr/share/fonts/opentype/sequoia
+mkdir -p "$FD" /tmp/sf
+unzip -q -o "$S/San-Francisco-Font.zip" -d /tmp/sf
+cp /tmp/sf/San-Francisco-Font/"San Francisco"/pro/*.otf "$FD/"
+rm -rf /tmp/sf "$S/San-Francisco-Font.zip"
+fc-cache -f
+
+# Plymouth needs a PNG. Geometry is the unmodified logo.svg path; only the fill colour is
+# supplied (the asset has no fill attribute, so it would render black-on-black).
+PT=/usr/share/plymouth/themes/sequoia
+sed 's/<path /<path fill="#ffffff" /' "$S/logo.svg" > /tmp/logo-white.svg
+rsvg-convert -h 1000 /tmp/logo-white.svg -o "$PT/logo.png"
+rm -f /tmp/logo-white.svg

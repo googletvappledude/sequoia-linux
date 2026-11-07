@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0">
+  <kcfgfile name=""/>
+  <group name="General">
+    <entry name="VideoUrl" type="String"><default>file:///usr/share/sequoia/Hidden-Forest.mp4</default></entry>
+    <entry name="StillUrl" type="String"><default>file:///usr/share/sequoia/wallpaper-still.jpg</default></entry>
+    <entry name="Animate" type="Bool"><default>true</default></entry>
+    <entry name="PauseOnBattery" type="Bool"><default>true</default></entry>
+  </group>
+</kcfg>

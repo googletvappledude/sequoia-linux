@@ -1,0 +1,13 @@
+{
+  "KPlugin": {
+    "Id": "org.sequoia.logomenu",
+    "Name": "Sequoia Logo Menu",
+    "Description": "logo.svg menu: About, Settings, Software, Force Quit, power actions",
+    "Icon": "start-here",
+    "Version": "0.1.0",
+    "Category": "System Information",
+    "Authors": [{ "Name": "Sequoia Linux" }]
+  },
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0"
+}

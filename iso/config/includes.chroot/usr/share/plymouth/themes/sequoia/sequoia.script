@@ -1,0 +1,17 @@
+# Pure black background, logo centred (proportions preserved). No text/spinner/progress.
+Window.SetBackgroundTopColor(0.0, 0.0, 0.0);
+Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
+
+logo.image = Image("logo.png");
+sw = Window.GetWidth();
+sh = Window.GetHeight();
+ratio = logo.image.GetWidth() / logo.image.GetHeight();
+th = Math.Int(sh * 0.14);          # logo height = 14% of screen height
+tw = Math.Int(th * ratio);         # width follows the original aspect ratio
+logo.scaled = logo.image.Scale(tw, th);
+logo.sprite = Sprite(logo.scaled);
+logo.sprite.SetX(Window.GetX() + Math.Int((sw - tw) / 2));
+logo.sprite.SetY(Window.GetY() + Math.Int((sh - th) / 2));
+logo.sprite.SetOpacity(1.0);
+
+# Intentionally no message/password/progress callbacks: nothing else may be drawn.

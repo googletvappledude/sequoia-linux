@@ -1,0 +1,7 @@
+[SddmGreeterTheme]
+Name=Sequoia
+Description=Lock-screen style login
+Author=Sequoia Linux
+Version=0.1
+MainScript=Main.qml
+QtVersion=6

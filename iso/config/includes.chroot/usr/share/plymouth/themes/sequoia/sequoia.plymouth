@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Sequoia
+Description=Black screen with centred logo.svg only
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/sequoia
+ScriptFile=/usr/share/plymouth/themes/sequoia/sequoia.script

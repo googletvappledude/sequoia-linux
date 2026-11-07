@@ -1,0 +1,6 @@
+{
+  "KPlugin": { "Id": "org.sequoia.desktop", "Name": "Sequoia", "Description": "Sequoia-inspired desktop layout", "Version": "0.1.0",
+               "Authors": [{ "Name": "Sequoia Linux" }] },
+  "KPackageStructure": "Plasma/LookAndFeel",
+  "X-Plasma-APIVersion": "2"
+}

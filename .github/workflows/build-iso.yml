@@ -1,0 +1,77 @@
+name: Build ISO
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: bash tests/test_startup_sound.sh
+      - run: bash tests/test_assets.sh
+
+  components:
+    needs: checks
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    steps:
+      - run: apt-get update && apt-get install -y git ca-certificates
+      - uses: actions/checkout@v4
+      - name: Install build deps
+        run: |
+          apt-get install -y build-essential cmake extra-cmake-modules dpkg-dev file \
+            qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools libkf6windowsystem-dev \
+            liblayershellqtinterface-dev libplasma-dev plasma-workspace-dev
+      - name: Lint QML (fails on syntax errors)
+        run: |
+          find . -name '*.qml' -not -path './iso/*sddm*' | xargs /usr/lib/qt6/bin/qmllint --compiler off 2>&1 | tee qmllint.log || true
+          ! grep -E 'Error|error:' qmllint.log
+      - name: Build dock .deb
+        run: |
+          cmake -S components/sequoia-dock -B build-dock -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build-dock -j"$(nproc)"
+          (cd build-dock && cpack)
+          mkdir -p components/out && cp build-dock/*.deb components/out/
+          ls -l components/out
+      - uses: actions/upload-artifact@v4
+        with: { name: components, path: components/out/*.deb, if-no-files-found: error }
+
+  iso:
+    needs: components
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    container:
+      image: debian:trixie
+      options: --privileged
+    steps:
+      - run: apt-get update && apt-get install -y git ca-certificates
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: components, path: components/out }
+      - name: Build ISO (live-build)
+        run: bash scripts/build-iso.sh
+      - name: Locate ISO
+        id: iso
+        run: |
+          ISO=$(ls build/*.iso 2>/dev/null | head -n1 || true)
+          [ -n "$ISO" ] || { echo "::error::No ISO produced"; exit 1; }
+          echo "path=$ISO" >> "$GITHUB_OUTPUT"
+      - name: Verify ISO (exists, not empty, mandatory assets present)
+        run: bash scripts/verify-iso.sh "${{ steps.iso.outputs.path }}"
+      - name: Checksum
+        run: sha256sum "${{ steps.iso.outputs.path }}" | tee "${{ steps.iso.outputs.path }}.sha256"
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: build-log, path: build.log, if-no-files-found: ignore }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sequoia-linux-iso
+          path: |
+            build/*.iso
+            build/*.iso.sha256
+          if-no-files-found: error
+          retention-days: 7

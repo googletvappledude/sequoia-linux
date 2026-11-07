@@ -1,0 +1,14 @@
+[General]
+ColorScheme=SequoiaLight
+font=SF Pro Text,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+menuFont=SF Pro Text,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+toolBarFont=SF Pro Text,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+smallestReadableFont=SF Pro Text,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+fixed=Hack,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+AccentColor=0,122,255
+
+[KDE]
+LookAndFeelPackage=org.sequoia.desktop
+widgetStyle=Breeze
+AnimationDurationFactor=0.7
+SingleClick=false
