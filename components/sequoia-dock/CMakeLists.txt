@@ -13,6 +13,8 @@ install(TARGETS sequoia-dock RUNTIME DESTINATION bin)
 install(FILES sequoia-dock.desktop DESTINATION /etc/xdg/autostart)
 
 set(CPACK_GENERATOR DEB)
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE amd64)
 set(CPACK_PACKAGE_NAME sequoia-dock)
 set(CPACK_PACKAGE_CONTACT "sequoia-linux@localhost")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Sequoia Dock (layer-shell dock with magnification)")
