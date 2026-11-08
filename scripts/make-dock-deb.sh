@@ -57,8 +57,7 @@ if command -v dpkg-shlibdeps >/dev/null 2>&1; then
 fi
 
 # Runtime dependencies required by the dock.
-DEPS="plasma-workspace, qml6-module-org-kde-taskmanager, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-org-kde-layershell"
-
+DEPS="plasma-workspace, qml6-module-qtquick-controls, qml6-module-qtquick-layouts"
 if [ -n "$SHL" ]; then
     DEPS="$DEPS, $SHL"
 fi
