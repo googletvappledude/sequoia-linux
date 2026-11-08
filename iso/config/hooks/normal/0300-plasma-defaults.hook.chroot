@@ -1,15 +1,30 @@
+
 #!/bin/sh
 set -e
-# Install plasmoids / look-and-feel / wallpaper plugin shipped in /usr/share/sequoia/kpackages
+
+# Install Sequoia Plasma widgets
 for d in /usr/share/sequoia/kpackages/plasmoids/*; do
   [ -d "$d" ] && mkdir -p /usr/share/plasma/plasmoids && cp -r "$d" /usr/share/plasma/plasmoids/
 done
+
+# Install Sequoia wallpapers
 for d in /usr/share/sequoia/kpackages/wallpapers/*; do
   [ -d "$d" ] && mkdir -p /usr/share/plasma/wallpapers && cp -r "$d" /usr/share/plasma/wallpapers/
 done
+
+# Install Sequoia look-and-feel themes
 for d in /usr/share/sequoia/kpackages/look-and-feel/*; do
   [ -d "$d" ] && mkdir -p /usr/share/plasma/look-and-feel && cp -r "$d" /usr/share/plasma/look-and-feel/
 done
-systemctl enable sddm.service NetworkManager.service bluetooth.service sequoia-live-autologin.service sequoia-boot-sound.service
-# One-shot startup sound: enabled for every user session by default (user can mask via Settings)
+
+# Enable essential services
+systemctl enable sddm.service
+systemctl enable NetworkManager.service
+systemctl enable bluetooth.service
+systemctl enable sequoia-boot-sound.service
+
+# Disable automatic live login so the login screen appears
+systemctl disable sequoia-live-autologin.service || true
+
+# Enable the startup sound for user sessions
 systemctl --global enable sequoia-startup-sound.service
