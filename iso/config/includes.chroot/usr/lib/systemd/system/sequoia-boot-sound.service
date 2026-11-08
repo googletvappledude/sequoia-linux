@@ -1,0 +1,11 @@
+[Unit]
+Description=Sequoia startup sound (once per boot, during the splash)
+After=systemd-udevd.service alsa-restore.service plymouth-start.service
+ConditionPathExists=!/run/sequoia/startup-sound.played
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/sequoia/boot-sound
+
+[Install]
+WantedBy=multi-user.target

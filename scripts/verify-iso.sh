@@ -39,6 +39,8 @@ for f in usr/share/sequoia/logo.svg usr/share/sequoia/startup-sound.wav usr/shar
          usr/share/plasma/look-and-feel/org.sequoia.desktop/metadata.json \
          usr/share/sddm/themes/sequoia/Main.qml usr/share/color-schemes/SequoiaLight.colors \
          usr/share/fonts/opentype/sequoia/SF-Pro-Text-Regular.otf usr/lib/sequoia/live-autologin usr/lib/systemd/system/sequoia-live-autologin.service \
+         usr/lib/sequoia/boot-sound usr/lib/systemd/system/sequoia-boot-sound.service etc/sequoia/startup-sound.conf \
+         etc/systemd/system/multi-user.target.wants/sequoia-boot-sound.service usr/bin/aplay usr/bin/amixer \
          usr/share/applications/sequoia-install.desktop etc/xdg/autostart/sequoia-live-installer-icon.desktop \
          usr/bin/calamares etc/calamares/settings.conf etc/default/grub usr/lib/grub/x86_64-efi/normal.mod usr/lib/grub/i386-pc/boot.img usr/lib/grub/i386-pc/normal.mod; do
   if grep -Fxq "squashfs-root/$f" "$T/list.txt" || grep -Fxq "$f" "$T/list.txt"; then echo "ok   $f"

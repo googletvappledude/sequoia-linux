@@ -6,7 +6,7 @@ Legend: BUILT = code written; TESTED = actually executed; none of the desktop pi
 |---|---|
 | Asset inspection, repo layout, live-build config | BUILT |
 | Startup sound one-shot logic (once/boot, disable, races, restarts) | BUILT + TESTED with stub player (`tests/test_startup_sound.sh`) |
-| Startup sound **real audio output** | NOT TESTED (no audio device/PipeWire in dev sandbox) |
+| Startup sound at boot (system service, plays via ALSA during the splash) + login-time fallback | BUILT; logic TESTED with stubs (tests/test_boot_sound.sh). Real audio output NOT TESTED; Chromebook/odd codecs may need extra setup. Starts ~1-5 s after the logo appears, not at the exact instant |
 | Plymouth black + centred logo | BUILT, NOT TESTED (needs VM); PNG is made at build time from logo.svg (white fill added since the SVG has no fill and would be black-on-black) |
 | Hidden GRUB (timeout 0) | BUILT, NOT TESTED; verify-iso.sh checks it |
 | SDDM theme, colour scheme, skel defaults, Plasma layout | BUILT, NOT TESTED |
@@ -31,3 +31,7 @@ Finder (custom file manager), Control Centre, System Settings app, notification 
 - Secure Boot: not supported; disable it in firmware. No LUKS encryption. BIOS and UEFI installs are untested.
 - Installed GRUB menu is hidden with a 2 s window (Shift/Esc shows it). Dual-boot: other systems are detected by os-prober but the menu stays hidden.
 - Test only in a VM with a blank virtual disk first. Never test the installer on a disk with data you need.
+
+## Startup sound
+- Setting: /etc/sequoia/startup-sound.conf (enabled=true|false, persists across reboots). The Settings app will write it later; until then edit with sudo.
+- The login-time service only plays if the boot service did not (shared flag in /run), so it plays once per boot.

@@ -1,0 +1,39 @@
+#!/bin/bash
+# System service: play the startup sound ONCE per boot, straight through the sound card (ALSA),
+# while the splash is on screen. The desktop's PipeWire does not exist yet at this point.
+# Overrides for tests: SEQUOIA_SOUND SEQUOIA_SYS_CONF SEQUOIA_RUN_DIR SEQUOIA_WAIT SEQUOIA_APLAY SEQUOIA_AMIXER
+set -u
+SOUND="${SEQUOIA_SOUND:-/usr/share/sequoia/startup-sound.wav}"
+CONF="${SEQUOIA_SYS_CONF:-/etc/sequoia/startup-sound.conf}"
+RUN="${SEQUOIA_RUN_DIR:-/run/sequoia}"
+FLAG="$RUN/startup-sound.played"
+WAIT="${SEQUOIA_WAIT:-25}"
+APLAY="${SEQUOIA_APLAY:-aplay}"
+AMIXER="${SEQUOIA_AMIXER:-amixer}"
+mkdir -p "$RUN"; chmod 755 "$RUN" 2>/dev/null || true
+
+[ -e "$FLAG" ] && { echo "already played this boot"; exit 0; }
+if [ -f "$CONF" ] && grep -qiE '^\s*enabled\s*=\s*(false|0|no|off)\s*$' "$CONF"; then echo "disabled by setting"; exit 0; fi
+[ -r "$SOUND" ] || { echo "sound file missing: $SOUND" >&2; exit 1; }
+exec 9>"$RUN/startup-sound.lock"; flock -n 9 || { echo "another instance running"; exit 0; }
+
+# Wait (up to $WAIT s) for a playback-capable sound card to appear
+devs=""
+for _ in $(seq 1 $((WAIT * 4))); do
+  devs=$("$APLAY" -l 2>/dev/null | sed -n 's/^card \([0-9]*\):.*device \([0-9]*\):.*/\1,\2/p')
+  [ -n "$devs" ] && break
+  sleep 0.25
+done
+[ -n "$devs" ] || { echo "no sound card after ${WAIT}s; login-time fallback will handle it"; exit 0; }
+sleep 0.5
+
+# Best effort: unmute common outputs (level is left alone). Controls differ per codec.
+for c in $(printf '%s\n' $devs | cut -d, -f1 | sort -u); do
+  for ctl in Master Speaker Headphone; do "$AMIXER" -q -c "$c" sset "$ctl" unmute 2>/dev/null || true; done
+done
+
+# Play on every playback device in parallel (speakers vs HDMI differs per machine); success if any plays
+pids=(); for d in $devs; do "$APLAY" -q -D "plughw:$d" "$SOUND" & pids+=($!); done
+ok=0; for p in "${pids[@]}"; do wait "$p" && ok=1; done
+if [ "$ok" = 1 ]; then : > "$FLAG"; echo "played"; else echo "playback failed on all devices; login-time fallback will handle it"; fi
+exit 0

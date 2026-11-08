@@ -13,11 +13,17 @@ mkdir -p "$STATE"
 if [ -f "$CONF" ] && grep -qiE '^\s*enabled\s*=\s*(false|0|no|off)\s*$' "$CONF"; then
   echo "startup sound disabled by user"; exit 0
 fi
+SYSCONF="${SEQUOIA_SYS_CONF:-/etc/sequoia/startup-sound.conf}"
+if [ -f "$SYSCONF" ] && grep -qiE '^\s*enabled\s*=\s*(false|0|no|off)\s*$' "$SYSCONF"; then
+  echo "startup sound disabled system-wide"; exit 0
+fi
+# Fallback role: if the boot-time service already played this boot, stay silent
+if [ -e "${SEQUOIA_RUN_FLAG:-/run/sequoia/startup-sound.played}" ]; then echo "already played at boot"; exit 0; fi
 # 2. Sound file must exist
 [ -r "$SOUND" ] || { echo "sound file missing: $SOUND" >&2; exit 1; }
-# 3. Only real user sessions (no greeter, no root)
+# 3. Never as root
 [ "$(id -u)" -ne 0 ] || [ -n "${SEQUOIA_PLAYER:-}" ] || exit 0
-[ -n "${XDG_SESSION_TYPE:-}" ] || [ -n "${SEQUOIA_PLAYER:-}" ] || { echo "no graphical session"; exit 0; }
+# (No XDG_SESSION_TYPE check: the systemd user manager often lacks it, and the unit is already ordered after graphical-session.target.)
 
 # 4. Duplicate prevention: lock + boot_id marker (survives panel/audio/service restarts)
 exec 9>"$STATE/startup-sound.lock"
