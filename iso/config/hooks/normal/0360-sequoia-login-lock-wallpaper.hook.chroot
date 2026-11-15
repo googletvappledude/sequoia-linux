@@ -1,0 +1,20 @@
+#!/bin/sh
+# Apply the user-supplied Sequoia wallpaper to SDDM and Plasma's lock screen.
+set -eu
+
+WALLPAPER=/usr/share/sequoia/sequoia-login-lock-wallpaper.jpg
+install -d /usr/share/sequoia
+
+# The image is versioned in this repository. Download it during the ISO build.
+wget -qO "$WALLPAPER" \
+  https://raw.githubusercontent.com/googletvappledude/sequoia-linux/main/assets/wallpapers/sequoia-login-lock-wallpaper.jpg
+test -s "$WALLPAPER"
+
+# Keep Sequoia's existing SDDM QML layout; only its background asset changes.
+# Plasma's image wallpaper plugin supplies the same background behind the
+# existing lock-screen clock and unlock controls.
+kwriteconfig6 --file /etc/xdg/kscreenlockerrc --group Greeter --key WallpaperPlugin org.kde.image
+kwriteconfig6 --file /etc/xdg/kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "file://$WALLPAPER"
+kwriteconfig6 --file /etc/xdg/kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key PreviewImage "$WALLPAPER"
+
+echo "Sequoia login and lock-screen wallpaper installed."
