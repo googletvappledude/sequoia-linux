@@ -20,7 +20,7 @@ if [ -f "$C/settings.conf" ]; then
   if ! grep -Eq '^[[:space:]]*-[[:space:]]*removeuser[[:space:]]*$' "$C/settings.conf"; then
     # Run after user creation, while the installer is still operating in target.
     if grep -qE '^[[:space:]]*-[[:space:]]*umount[[:space:]]*$' "$C/settings.conf"; then
-      sed -i '/^[[:space:]]*-[[:space:]]*umount[[:space:]]*$/i\\      - removeuser' "$C/settings.conf"
+      sed -i '/^[[:space:]]*-[[:space:]]*umount[[:space:]]*$/i\      - removeuser' "$C/settings.conf"
     else
       echo "[installer] ERROR: could not find umount in Calamares exec sequence" >&2
       exit 1
@@ -43,7 +43,7 @@ fi
 update-cracklib >/dev/null 2>&1 || true
 if [ -f "$M/users.conf" ]; then
   sed -i '/^allowWeakPasswords/d' "$M/users.conf"
-  printf 'allowWeakPasswords: true\\nallowWeakPasswordsDefault: false\\n' >> "$M/users.conf"
+  printf 'allowWeakPasswords: true\nallowWeakPasswordsDefault: false\n' >> "$M/users.conf"
   echo "[installer] users.conf weak-password settings:"; grep -n 'allowWeak' "$M/users.conf"
 else
   echo "[installer] WARNING: $M/users.conf not found"
