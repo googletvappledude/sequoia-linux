@@ -2,7 +2,7 @@
 ButtonsOnLeft=XIA
 ButtonsOnRight=
 BorderSize=None
-library=org.kde.breeze
+library=org.kde.sierrabreezeenhanced
 [Plugins]
 blurEnabled=true
 slidingpopupsEnabled=true

@@ -1,5 +1,13 @@
+[kdeglobals][Icons]
+Theme=Sequoia
 [kdeglobals][General]
 ColorScheme=SequoiaLight
 [kwinrc][org.kde.kdecoration2]
 ButtonsOnLeft=XIA
 ButtonsOnRight=
+[sierrabreezeenhancedrc][Windeco]
+ButtonStyle=macSierra
+ButtonSize=ButtonDefault
+ButtonSpacing=2
+ButtonPadding=4
+TitleAlignment=AlignCenterFullWidth

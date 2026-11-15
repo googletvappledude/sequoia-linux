@@ -35,3 +35,8 @@ Finder (custom file manager), Control Centre, System Settings app, notification 
 ## Startup sound
 - Setting: /etc/sequoia/startup-sound.conf (enabled=true|false, persists across reboots). The Settings app will write it later; until then edit with sudo.
 - The login-time service only plays if the boot service did not (shared flag in /run), so it plays once per boot.
+
+## Appearance components added for the next test ISO
+- Sierra Breeze Enhanced KWin decoration: build script packages the Plasma 6.3+ plugin; the live user's defaults select it and place close/minimize/maximize controls on the left. Actual traffic-light colours/button style still need visual confirmation in a VM.
+- WhiteSur icon artwork is packaged under the `Sequoia` icon-theme name and selected in KDE defaults. This is a macOS-inspired third-party icon set; it is not original Sequoia artwork.
+- Both appearance packages are required components in CI (not optional/continue-on-error). ISO verification now fails if either package or default selection is missing.
