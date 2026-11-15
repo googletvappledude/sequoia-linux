@@ -23,8 +23,9 @@ systemctl enable NetworkManager.service
 systemctl enable bluetooth.service
 systemctl enable sequoia-boot-sound.service
 
-# Disable automatic live login so the login screen appears
-systemctl disable sequoia-live-autologin.service || true
+# Enable automatic login only for the live USB. The service checks /run/live,
+# so installed systems continue to use the normal password-protected SDDM screen.
+systemctl enable sequoia-live-autologin.service
 
 # Enable the startup sound for user sessions
 systemctl --global enable sequoia-startup-sound.service
