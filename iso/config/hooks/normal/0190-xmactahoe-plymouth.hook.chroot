@@ -5,8 +5,10 @@ XMT_VERSION="7ffdaab099220c603c39fbb4503739beee17768c"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 apt-get install -y --no-install-recommends plymouth-themes git ca-certificates
-git clone --depth 1 https://github.com/chapdel/XMacTahoe.git "$WORK/XMacTahoe"
-git -C "$WORK/XMacTahoe" checkout "$XMT_VERSION"
+git -C "$WORK/XMacTahoe" init
+git -C "$WORK/XMacTahoe" remote add origin https://github.com/chapdel/XMacTahoe.git
+git -C "$WORK/XMacTahoe" fetch --depth 1 origin "$XMT_VERSION"
+git -C "$WORK/XMacTahoe" checkout --detach FETCH_HEAD
 THEME="$WORK/XMacTahoe/extra/plymouth/xmactahoe"
 [ -s "$THEME/xmactahoe.plymouth" ] || { echo "ERROR: XMacTahoe Plymouth theme files are missing" >&2; exit 1; }
 install -d /usr/share/plymouth/themes/xmactahoe
