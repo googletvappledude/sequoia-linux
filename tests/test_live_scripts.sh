@@ -5,6 +5,8 @@ W=$(mktemp -d); trap 'rm -rf "$W"' EXIT
 chk(){ if eval "$2"; then echo "PASS $1"; else echo "FAIL $1"; fail=1; fi; }
 SEQUOIA_AUTOLOGIN_FILE="$W/sddm/al.conf" SEQUOIA_LIVE_USER=live sh $L/live-autologin
 chk "autologin file written"      "grep -q '^User=live\$' $W/sddm/al.conf && grep -q '^Session=plasma.desktop\$' $W/sddm/al.conf"
+chk "live user-setup package included" "grep -qx 'user-setup' iso/config/package-lists/base.list.chroot"
+chk "live-only SDDM autologin enabled" "grep -q '^systemctl enable sequoia-live-autologin.service$' iso/config/hooks/normal/0300-plasma-defaults.hook.chroot && ! grep -q '^systemctl disable sequoia-live-autologin.service' iso/config/hooks/normal/0300-plasma-defaults.hook.chroot"
 mkdir -p "$W/run-live"; cp iso/config/includes.chroot/usr/share/applications/sequoia-install.desktop "$W/l.desktop"
 SEQUOIA_LIVE_MARKER="$W/run-live" SEQUOIA_DESKTOP_DIR="$W/Desk" SEQUOIA_LAUNCHER="$W/l.desktop" sh $L/live-installer-icon
 chk "installer icon placed on live desktop, executable" "[ -x $W/Desk/sequoia-install.desktop ]"
