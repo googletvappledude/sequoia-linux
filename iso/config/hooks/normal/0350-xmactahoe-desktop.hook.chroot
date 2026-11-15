@@ -20,7 +20,7 @@ install -d /usr/share/plasma/desktoptheme /usr/share/plasma/look-and-feel
 install -d /usr/share/plasma/plasmoids /usr/share/color-schemes
 install -d /usr/share/icons /usr/share/aurorae/themes /usr/share/wallpapers
 install -d /usr/share/Kvantum /usr/share/fonts/truetype/xmactahoe
-install -d /usr/share/gtk-themes /usr/share/kservices5/ServiceMenus
+install -d /usr/share/themes /usr/share/kservices5/ServiceMenus
 install -d /usr/share/kio/servicemenus /usr/share/kwin/scripts
 install -d /usr/share/xmactahoe
 
@@ -32,7 +32,7 @@ cp -a "$SRC/aurorae/themes/." /usr/share/aurorae/themes/
 cp -a "$SRC/wallpapers/." /usr/share/wallpapers/
 cp -a "$SRC/Kvantum/." /usr/share/Kvantum/
 cp -a "$SRC/fonts/." /usr/share/fonts/truetype/xmactahoe/
-cp -a "$SRC/gtk/themes/." /usr/share/gtk-themes/
+cp -a "$SRC/gtk/themes/." /usr/share/themes/
 cp -a "$SRC/extra/kwin-scripts/." /usr/share/kwin/scripts/
 cp -a "$SRC/extra/servicemenus/." /usr/share/kio/servicemenus/
 cp -a "$SRC/extra/applications/." /usr/share/applications/
@@ -89,6 +89,14 @@ kwriteconfig6 --file /etc/xdg/kdeglobals --group Icons --key Theme XMacTahoe-Nig
 kwriteconfig6 --file /etc/xdg/kdeglobals --group General --key widgetStyle kvantum
 kwriteconfig6 --file /etc/xdg/kcminputrc --group Mouse --key cursorTheme XMacTahoe-cursors
 kwriteconfig6 --file /etc/xdg/plasmarc --group Theme --key name XMacTahoe-Dark
+
+# Enable the XMacTahoe KWin scripts in the system defaults. They are part of
+# the desktop experience (window behaviour, effects and panel helpers).
+for script_dir in /usr/share/kwin/scripts/*/; do
+  [ -d "$script_dir" ] || continue
+  script_id="$(basename "$script_dir")"
+  kwriteconfig6 --file /etc/xdg/kwinrc --group Plugins --key "${script_id}Enabled" true
+done
 
 # Seed the live user's and installed user's skeleton with matching app styling.
 install -d /etc/skel/.config/Kvantum /etc/skel/.config/environment.d
