@@ -19,6 +19,7 @@ flatpak
 kinfocenter
 systemsettings
 polkit-kde-agent-1
+kmenuedit
 qml6-module-qtmultimedia
 qml6-module-qtquick-controls
 qml6-module-qtquick-layouts
