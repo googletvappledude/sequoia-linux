@@ -42,7 +42,7 @@ for f in usr/share/sequoia/logo.svg usr/share/sequoia/startup-sound.wav usr/shar
          usr/lib/sequoia/boot-sound usr/lib/systemd/system/sequoia-boot-sound.service etc/sequoia/startup-sound.conf \
          etc/systemd/system/multi-user.target.wants/sequoia-boot-sound.service usr/bin/aplay usr/bin/amixer \
          usr/share/applications/sequoia-install.desktop etc/xdg/autostart/sequoia-live-installer-icon.desktop \
-         usr/bin/calamares etc/calamares/settings.conf etc/default/grub usr/lib/grub/x86_64-efi/normal.mod usr/lib/grub/i386-pc/boot.img usr/lib/grub/i386-pc/normal.mod; do
+         usr/share/icons/Sequoia/index.theme usr/bin/kmenuedit usr/bin/calamares etc/calamares/settings.conf etc/default/grub usr/lib/grub/x86_64-efi/normal.mod usr/lib/grub/i386-pc/boot.img usr/lib/grub/i386-pc/normal.mod; do
   if grep -Fxq "squashfs-root/$f" "$T/list.txt" || grep -Fxq "$f" "$T/list.txt"; then echo "ok   $f"
   else echo "MISSING $f"; missing+=("$f"); fi
 done
@@ -55,10 +55,16 @@ if [ "${#missing[@]}" -gt 0 ]; then
 fi
 if grep -Fxq "squashfs-root/etc/sddm.conf.d/20-live-autologin.conf" "$T/list.txt"; then fail "live autologin file is baked into the image (would be installed too)"; fi
 echo "ok   no live autologin file baked into the image"
-unsquashfs -d "$T/c" -f "$T/fs.squashfs" etc/calamares/modules/removeuser.conf etc/default/grub >/dev/null 2>&1 || true
+unsquashfs -d "$T/c" -f "$T/fs.squashfs" etc/calamares/modules/removeuser.conf etc/calamares/modules/users.conf etc/default/grub >/dev/null 2>&1 || true
 grep -q '^username: live' "$T/c/etc/calamares/modules/removeuser.conf" 2>/dev/null || fail "Calamares removeuser is not set to remove the live user"
 grep -q 'splash' "$T/c/etc/default/grub" 2>/dev/null || fail "/etc/default/grub lacks splash for installed systems"
 echo "ok   installer removes live user; installed GRUB config has splash"
+if grep -q '^allowWeakPasswords: true' "$T/c/etc/calamares/modules/users.conf" 2>/dev/null; then echo "ok   installer allows continuing past weak-password warnings"
+else echo "NOTE installer weak-password setting not applied (users.conf missing or different)"; fi
+if grep -Fq 'squashfs-root/var/cache/cracklib/cracklib_dict' "$T/list.txt"; then echo "ok   password dictionary (cracklib) is in the image"
+else echo "NOTE password dictionary not found in the image; the installer's password check may complain"; fi
+if grep -q 'breezeenhanced.so' "$T/list.txt"; then echo "ok   macOS-style window decoration (BreezeEnhanced) is in the image"
+else echo "NOTE macOS-style window decoration is NOT in the image (its optional build step failed): plain Breeze buttons will be used"; fi
 unsquashfs -d "$T/x" -f "$T/fs.squashfs" usr/share/sequoia/logo.svg usr/share/sequoia/startup-sound.wav usr/share/sequoia/Hidden-Forest.mp4 >/dev/null
 for a in logo.svg startup-sound.wav Hidden-Forest.mp4; do
   cmp "$T/x/usr/share/sequoia/$a" "$HERE/assets/originals/$a" || fail "$a differs from supplied asset"

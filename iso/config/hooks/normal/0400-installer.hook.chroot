@@ -1,37 +1,35 @@
-
 #!/bin/sh
-# Prepare the installer: remove the live user from installed systems,
-# disable automated LUKS partitioning, and set GRUB defaults.
-
+# Prepare the installer: remove the live user from installed systems, disable LUKS, set GRUB defaults.
 set -e
+R="${SEQUOIA_ROOT:-}"
+C="$R/etc/calamares"
+echo "[installer] calamares config tree:"; ls -R "$C" 2>/dev/null | head -80 || true
+echo "[installer] exec sequence in settings.conf:"; grep -nE '^\s*-\s+[a-z]' "$C/settings.conf" 2>/dev/null | head -60 || true
 
-C=/etc/calamares
-
-echo "[installer] calamares config tree:"
-ls -R "$C" 2>/dev/null | head -80 || true
-
-echo "[installer] exec sequence in settings.conf:"
-grep -nE '^\s*-\s+[a-z]' "$C/settings.conf" 2>/dev/null | head -60 || true
-
-# Create the removeuser configuration
-mkdir -p "$C/modules"
-
-cat > "$C/modules/removeuser.conf" <<'EOF'
-username: live
-EOF
-
-echo "[installer] removeuser.conf:"
-cat "$C/modules/removeuser.conf"
-
-# Disable automated LUKS partitioning
+if [ -f "$C/modules/removeuser.conf" ]; then
+  sed -i 's/^username:.*/username: live/' "$C/modules/removeuser.conf"
+  echo "[installer] removeuser.conf:"; cat "$C/modules/removeuser.conf"
+else
+  echo "[installer] WARNING: $C/modules/removeuser.conf not found; the live user may remain after install"
+fi
 if [ -f "$C/modules/partition.conf" ]; then
-    sed -i '/^enableLuksAutomatedPartitioning:/d' "$C/modules/partition.conf"
-    echo "enableLuksAutomatedPartitioning: false" >> "$C/modules/partition.conf"
+  sed -i '/^enableLuksAutomatedPartitioning:/d' "$C/modules/partition.conf"
+  echo "enableLuksAutomatedPartitioning: false" >> "$C/modules/partition.conf"
 fi
 
-# GRUB defaults for the installed system
-# Hidden menu with a 2-second window to reveal it using Shift/Esc.
-cat > /etc/default/grub <<'GRUBDEF'
+# Password page: the dictionary check needs cracklib's word list; also let the user continue past a weak-password warning
+update-cracklib >/dev/null 2>&1 || true
+if [ -f "$C/modules/users.conf" ]; then
+  sed -i '/^allowWeakPasswords/d' "$C/modules/users.conf"
+  printf 'allowWeakPasswords: true\nallowWeakPasswordsDefault: false\n' >> "$C/modules/users.conf"
+  echo "[installer] users.conf weak-password settings:"; grep -n 'allowWeak' "$C/modules/users.conf"
+else
+  echo "[installer] WARNING: $C/modules/users.conf not found"
+fi
+
+# GRUB defaults used by the INSTALLED system: hidden menu (hold Shift/Esc during the 2 s window to show it), splash on
+mkdir -p "$R/etc/default"
+cat > "$R/etc/default/grub" <<'GRUBDEF'
 GRUB_DEFAULT=0
 GRUB_TIMEOUT_STYLE=hidden
 GRUB_TIMEOUT=2
@@ -40,6 +38,3 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet splash loglevel=0 vt.global_cursor_default=0 p
 GRUB_CMDLINE_LINUX=""
 GRUB_GFXPAYLOAD_LINUX=keep
 GRUBDEF
-
-echo "[installer] Calamares configuration prepared."
-echo "[installer] GRUB defaults configured."

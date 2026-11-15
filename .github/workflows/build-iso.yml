@@ -15,6 +15,9 @@ jobs:
       - run: bash tests/test_dock_package.sh
       - run: bash tests/test_live_scripts.sh
       - run: bash tests/test_boot_sound.sh
+      - run: bash tests/test_decoration_package.sh
+      - run: bash tests/test_icon_theme.sh
+      - run: bash tests/test_installer_config.sh
 
   components:
     needs: checks
@@ -37,6 +40,16 @@ jobs:
           cmake -S components/sequoia-dock -B build-dock -DCMAKE_BUILD_TYPE=Release
           cmake --build build-dock -j"$(nproc)"
           bash scripts/make-dock-deb.sh build-dock/sequoia-dock components/out
+          ls -l components/out
+      - name: Build macOS-style window decoration (optional; failure here does not stop the ISO)
+        continue-on-error: true
+        run: |
+          for p in cmake git gettext python3 file extra-cmake-modules libkf6guiaddons-dev libkf6i18n-dev libkf6kcmutils-dev \
+                   libkf6windowsystem-dev libkf6config-dev libkf6coreaddons-dev libkf6configwidgets-dev libkf6iconthemes-dev; do
+            apt-get install -y --no-install-recommends "$p" >/dev/null 2>&1 || echo "package unavailable: $p"
+          done
+          apt-get install -y --no-install-recommends $(apt-cache search kdecoration | awk '{print $1}' | grep -- '-dev$') || true
+          bash scripts/build-decoration.sh components/out
           ls -l components/out
       - uses: actions/upload-artifact@v4
         with: { name: components, path: components/out/*.deb, if-no-files-found: error }
