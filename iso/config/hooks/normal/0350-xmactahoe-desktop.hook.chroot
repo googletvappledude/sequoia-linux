@@ -1,0 +1,142 @@
+#!/bin/sh
+# Integrate the XMacTahoe Plasma desktop on Debian 13 without replacing
+# Sequoia's SDDM greeter, Plasma lock screen, Plymouth selection, or sound.
+set -eu
+
+XMT_COMMIT="7ffdaab099220c603c39fbb4503739beee17768c"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+SRC="$WORK/XMacTahoe"
+
+apt-get install -y --no-install-recommends git ca-certificates
+git init "$SRC"
+git -C "$SRC" remote add origin https://github.com/chapdel/XMacTahoe.git
+git -C "$SRC" fetch --depth 1 origin "$XMT_COMMIT"
+git -C "$SRC" checkout --detach FETCH_HEAD
+
+# Install the desktop theme assets system-wide. Do not run upstream install.sh:
+# its global-theme install changes kscreenlockerrc, and --root replaces SDDM/Plymouth.
+install -d /usr/share/plasma/desktoptheme /usr/share/plasma/look-and-feel
+install -d /usr/share/plasma/plasmoids /usr/share/color-schemes
+install -d /usr/share/icons /usr/share/aurorae/themes /usr/share/wallpapers
+install -d /usr/share/Kvantum /usr/share/fonts/truetype/xmactahoe
+install -d /usr/share/gtk-themes /usr/share/kservices5/ServiceMenus
+install -d /usr/share/kio/servicemenus /usr/share/kwin/scripts
+install -d /usr/share/xmactahoe
+
+cp -a "$SRC/plasma/desktoptheme/." /usr/share/plasma/desktoptheme/
+cp -a "$SRC/plasma/plasmoids/." /usr/share/plasma/plasmoids/
+cp -a "$SRC/color-schemes/." /usr/share/color-schemes/
+cp -a "$SRC/icons/." /usr/share/icons/
+cp -a "$SRC/aurorae/themes/." /usr/share/aurorae/themes/
+cp -a "$SRC/wallpapers/." /usr/share/wallpapers/
+cp -a "$SRC/Kvantum/." /usr/share/Kvantum/
+cp -a "$SRC/fonts/." /usr/share/fonts/truetype/xmactahoe/
+cp -a "$SRC/gtk/themes/." /usr/share/gtk-themes/
+cp -a "$SRC/extra/kwin-scripts/." /usr/share/kwin/scripts/
+cp -a "$SRC/extra/servicemenus/." /usr/share/kio/servicemenus/
+cp -a "$SRC/extra/applications/." /usr/share/applications/
+cp -a "$SRC/extra/systemd/." /usr/share/xmactahoe/systemd/
+cp -a "$SRC/extra/environment.d/." /usr/share/xmactahoe/environment.d/
+cp -a "$SRC/extra/apps/." /usr/share/xmactahoe/apps/
+cp -a "$SRC/extra/." /usr/share/xmactahoe/extra/
+cp -a "$SRC/bin/." /usr/share/xmactahoe/bin/
+cp "$SRC/install.sh" "$SRC/uninstall.sh" "$SRC/VERSION" "$SRC/LICENSE" "$SRC/THIRD_PARTY.md" /usr/share/xmactahoe/
+cp "$SRC/licenses/"* /usr/share/xmactahoe/ 2>/dev/null || true
+
+# Copy both variants, but strip the upstream lock-screen implementation and
+# its KDE splash reference. Sequoia's lock-screen and boot presentation remain.
+for variant in XMacTahoe.Dark XMacTahoe.Light; do
+  install -d "/usr/share/plasma/look-and-feel/$variant"
+  cp -a "$SRC/plasma/look-and-feel/$variant/." "/usr/share/plasma/look-and-feel/$variant/"
+  rm -rf "/usr/share/plasma/look-and-feel/$variant/contents/lockscreen"
+  defaults="/usr/share/plasma/look-and-feel/$variant/contents/defaults"
+  if [ -f "$defaults" ]; then
+    python3 - "$defaults" <<'PY'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+lines = p.read_text().splitlines()
+out, skipping = [], False
+for line in lines:
+    if line.startswith("["):
+        skipping = line.startswith("[ksplashrc]")
+    if not skipping:
+        out.append(line)
+p.write_text("\n".join(out) + "\n")
+PY
+  fi
+done
+
+# Install user-facing commands and their supporting files. The runtime package
+# directory is stable so helpers work after the temporary build checkout is gone.
+install -d /usr/local/bin
+install -m 0755 "$SRC/bin/xmactahoe" /usr/local/bin/xmactahoe
+for helper in "$SRC"/extra/xmactahoe-* "$SRC/extra/kde-desktop-repair"; do
+  [ -f "$helper" ] || continue
+  install -m 0755 "$helper" "/usr/local/bin/$(basename "$helper")"
+done
+install -m 0644 "$SRC/extra/apps/dolphinrc" /usr/share/xmactahoe/dolphinrc
+install -m 0644 "$SRC/extra/environment.d/xmactahoe.conf" /usr/share/xmactahoe/environment.d/xmactahoe.conf
+install -m 0644 "$SRC/extra/servicemenus/xmactahoe-tags.desktop" /usr/share/kio/servicemenus/xmactahoe-tags.desktop
+install -m 0644 "$SRC/extra/servicemenus/xmactahoe-tags.desktop" /usr/share/kservices5/ServiceMenus/xmactahoe-tags.desktop
+
+# Configure the default Plasma desktop for newly-created users. Do not write
+# kscreenlockerrc or any SDDM configuration here.
+kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key LookAndFeelPackage XMacTahoe.Dark
+kwriteconfig6 --file /etc/xdg/kdeglobals --group General --key ColorScheme XMacTahoeDark
+kwriteconfig6 --file /etc/xdg/kdeglobals --group Icons --key Theme XMacTahoe-Night
+kwriteconfig6 --file /etc/xdg/kdeglobals --group General --key widgetStyle kvantum
+kwriteconfig6 --file /etc/xdg/kcminputrc --group Mouse --key cursorTheme XMacTahoe-cursors
+kwriteconfig6 --file /etc/xdg/plasmarc --group Theme --key name XMacTahoe-Dark
+
+# Seed the live user's and installed user's skeleton with matching app styling.
+install -d /etc/skel/.config/Kvantum /etc/skel/.config/environment.d
+install -d /etc/skel/.config/gtk-3.0 /etc/skel/.config/gtk-4.0
+install -d /etc/skel/.local/share
+printf '[General]\ntheme=XMacTahoe\n' > /etc/skel/.config/Kvantum/kvantum.kvconfig
+cp /usr/share/xmactahoe/environment.d/xmactahoe.conf /etc/skel/.config/environment.d/
+cp /usr/share/xmactahoe/dolphinrc /etc/skel/.config/dolphinrc
+for gtk in gtk-3.0 gtk-4.0; do
+  cat > "/etc/skel/.config/$gtk/settings.ini" <<'GTK'
+[Settings]
+gtk-theme-name=MacTahoe-Dark
+gtk-icon-theme-name=XMacTahoe-Night
+gtk-cursor-theme-name=XMacTahoe-cursors
+gtk-decoration-layout=close,maximize,minimize:
+GTK
+done
+printf '%s\n' '/usr/share/xmactahoe' > /etc/skel/.config/xmactahoe-package-dir
+install -d /etc/skel/.config/xmactahoe
+printf '%s\n' '/usr/share/xmactahoe' > /etc/skel/.config/xmactahoe/package-dir
+install -d /etc/skel/.config/autostart
+cat > /etc/skel/.config/autostart/xmactahoe-finder.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Finder-style Dolphin setup
+Comment=Add Recents, Applications and Finder colour tags to Dolphin
+Exec=/usr/local/bin/xmactahoe-finder on
+OnlyShowIn=KDE;
+X-KDE-autostart-after=plasma-desktop
+DESKTOP
+
+fc-cache -f >/dev/null 2>&1 || true
+kbuildsycoca6 --noincremental >/dev/null 2>&1 || true
+
+# Guardrails: fail the ISO build if the upstream global theme reintroduced
+# its lock screen or if Sequoia's SDDM/Plymouth assets were removed.
+for variant in XMacTahoe.Dark XMacTahoe.Light; do
+  [ ! -e "/usr/share/plasma/look-and-feel/$variant/contents/lockscreen" ] || {
+    echo "ERROR: XMacTahoe lock screen must not replace Sequoia's." >&2; exit 1;
+  }
+done
+[ -s /usr/share/sddm/themes/sequoia/Main.qml ] || {
+  echo "ERROR: Sequoia SDDM theme missing after XMacTahoe integration." >&2; exit 1;
+}
+[ -s /usr/share/plymouth/themes/sequoia/sequoia.plymouth ] || {
+  echo "ERROR: Sequoia Plymouth files missing." >&2; exit 1;
+}
+[ -s /usr/share/sequoia/startup-sound.wav ] || {
+  echo "ERROR: Sequoia startup sound missing." >&2; exit 1;
+}
+echo "XMacTahoe desktop installed; Sequoia SDDM, lock screen, Plymouth and startup sound preserved."
