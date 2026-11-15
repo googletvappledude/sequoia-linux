@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-OUT="\${1:-components/out}"
+OUT="${1:-components/out}"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 SRC="$WORK/SierraBreezeEnhanced"
@@ -17,14 +17,14 @@ new = """find_package(Qt6 REQUIRED COMPONENTS Core5Compat)
 if(NOT TARGET Qt6::GuiPrivate)
   find_path(QT6_GUI_PRIVATE_INCLUDE_ROOT
     NAMES QtGui/private/qtx11extras_p.h
-    PATHS "/usr/include/\${CMAKE_LIBRARY_ARCHITECTURE}/qt6/QtGui/\${Qt6_VERSION}"
+    PATHS "/usr/include/${CMAKE_LIBRARY_ARCHITECTURE}/qt6/QtGui/${Qt6_VERSION}"
     NO_DEFAULT_PATH)
   if(NOT QT6_GUI_PRIVATE_INCLUDE_ROOT)
     message(FATAL_ERROR "Qt GUI private headers are missing. Install qt6-base-private-dev.")
   endif()
   add_library(Qt6::GuiPrivate INTERFACE IMPORTED)
   set_target_properties(Qt6::GuiPrivate PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "\${QT6_GUI_PRIVATE_INCLUDE_ROOT}"
+    INTERFACE_INCLUDE_DIRECTORIES "${QT6_GUI_PRIVATE_INCLUDE_ROOT}"
     INTERFACE_LINK_LIBRARIES Qt6::Gui)
 endif()"""
 if old not in source:
