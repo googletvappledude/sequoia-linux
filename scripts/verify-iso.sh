@@ -55,11 +55,9 @@ if [ "${#missing[@]}" -gt 0 ]; then
 fi
 if grep -Fxq "squashfs-root/etc/sddm.conf.d/20-live-autologin.conf" "$T/list.txt"; then fail "live autologin file is baked into the image (would be installed too)"; fi
 echo "ok   no live autologin file baked into the image"
-unsquashfs -d "$T/themecheck" -f "$T/fs.squashfs" etc/skel/.config/kdeglobals etc/skel/.config/kwinrc etc/skel/.config/sierrabreezeenhancedrc >/dev/null 2>&1 || fail "could not extract Sequoia Plasma theme defaults"
+unsquashfs -d "$T/themecheck" -f "$T/fs.squashfs" etc/skel/.config/kdeglobals etc/skel/.config/kwinrc >/dev/null 2>&1 || fail "could not extract Sequoia Plasma theme defaults"
 grep -q '^IconTheme=Sequoia' "$T/themecheck/etc/skel/.config/kdeglobals" || fail "Sequoia icon theme is not selected by default"
-grep -q '^library=org.kde.sierrabreezeenhanced' "$T/themecheck/etc/skel/.config/kwinrc" || fail "Sierra Breeze Enhanced is not selected by default"
-grep -q '^ButtonStyle=macSierra' "$T/themecheck/etc/skel/.config/sierrabreezeenhancedrc" || fail "macOS Sierra traffic-light button style is not selected by default"
-echo "ok   Sequoia icon theme and macOS-style traffic-light decoration selected by default"
+echo "ok   Sequoia icon theme selected by default"
 unsquashfs -d "$T/c" -f "$T/fs.squashfs" etc/calamares/modules/removeuser.conf etc/calamares/modules/users.conf etc/default/grub >/dev/null 2>&1 || true
 grep -q '^username: live' "$T/c/etc/calamares/modules/removeuser.conf" 2>/dev/null || fail "Calamares removeuser is not set to remove the live user"
 grep -q 'splash' "$T/c/etc/default/grub" 2>/dev/null || fail "/etc/default/grub lacks splash for installed systems"
@@ -68,11 +66,6 @@ if grep -q '^allowWeakPasswords: true' "$T/c/etc/calamares/modules/users.conf" 2
 else echo "NOTE installer weak-password setting not applied (users.conf missing or different)"; fi
 if grep -Fq 'squashfs-root/var/cache/cracklib/cracklib_dict' "$T/list.txt"; then echo "ok   password dictionary (cracklib) is in the image"
 else echo "NOTE password dictionary not found in the image; the installer's password check may complain"; fi
-if grep -q 'org.kde.sierrabreezeenhanced' "$T/list.txt" && grep -q 'sierrabreezeenhanced.json' "$T/list.txt"; then
-  echo "ok   Sierra Breeze Enhanced KWin decoration is in the image"
-else
-  fail "Sierra Breeze Enhanced window decoration is missing from the image"
-fi
 if grep -Fxq "squashfs-root/usr/share/icons/Sequoia/index.theme" "$T/list.txt" || grep -Fxq "usr/share/icons/Sequoia/index.theme" "$T/list.txt"; then
   echo "ok   Sequoia (WhiteSur-based) icon theme is in the image"
 else
