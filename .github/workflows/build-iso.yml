@@ -29,7 +29,7 @@ jobs:
           apt-get install -y build-essential cmake extra-cmake-modules dpkg-dev file \
             qt6-base-dev qt6-base-private-dev qt6-5compat-dev qt6-declarative-dev qt6-declarative-dev-tools libkf6windowsystem-dev \
             liblayershellqtinterface-dev libplasma-dev plasma-workspace-dev \
-            libkdecorations3-dev libkf6config-dev libkf6guiaddons-dev libkf6i18n-dev \
+            libkf6config-dev libkf6guiaddons-dev libkf6i18n-dev \
             libkf6configwidgets-dev libkf6coreaddons-dev libkf6iconthemes-dev \
             libkf6kcmutils-dev gettext libgtk-3-bin
       - name: Lint QML (fails on syntax errors)
@@ -42,14 +42,11 @@ jobs:
           cmake --build build-dock -j"$(nproc)"
           bash scripts/make-dock-deb.sh build-dock/sequoia-dock components/out
           ls -l components/out
-      - name: Build macOS-style window decoration package
-        run: bash scripts/build-decoration.sh components/out
       - name: Build Sequoia icon theme package
         run: bash scripts/build-icon-theme.sh components/out
       - name: Verify component packages
         run: |
           ls -lh components/out/*.deb
-          test -s components/out/sequoia-sierra-breeze-enhanced_1.0_amd64.deb
           test -s components/out/sequoia-icon-theme_1.0_all.deb
       - uses: actions/upload-artifact@v4
         with: { name: components, path: components/out/*.deb, if-no-files-found: error }
