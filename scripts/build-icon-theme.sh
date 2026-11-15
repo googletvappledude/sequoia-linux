@@ -9,8 +9,8 @@ PKG="$WORK/pkg"
 mkdir -p "$OUT" "$PKG/DEBIAN" "$PKG/usr/share/icons" "$PKG/usr/share/doc/sequoia-icon-theme"
 
 git clone --depth 1 https://github.com/vinceliuice/WhiteSur-icon-theme.git "$SRC"
-# -a selects the alternative macOS-like application icons; blue is the default accent.
-bash "$SRC/install.sh" --dest "$PKG/usr/share/icons" --name Sequoia --theme blue --alternative
+# -a selects the alternative macOS-like application icons. WhiteSur calls its base colour variant 'default' (the installer help's 'blue' label is only its fallback description).
+bash "$SRC/install.sh" --dest "$PKG/usr/share/icons" --name Sequoia --theme default --alternative
 
 [ -s "$PKG/usr/share/icons/Sequoia/index.theme" ] || {
   echo "ERROR: WhiteSur installer did not create Sequoia/index.theme" >&2
