@@ -22,7 +22,7 @@ Rectangle {
 
     Image {
         anchors.fill: parent
-        source: "file:///usr/share/sequoia/wallpaper-still.jpg"
+        source: "file:///usr/share/sequoia/sequoia-login-lock-wallpaper.jpg"
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
     }
