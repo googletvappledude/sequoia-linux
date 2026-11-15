@@ -1,4 +1,5 @@
 #!/bin/sh
 set -e
-plymouth-set-default-theme sequoia
+# Use XMacTahoe for the boot animation; keep Sequoia's own sound services.
+plymouth-set-default-theme xmactahoe
 update-initramfs -u -k all
