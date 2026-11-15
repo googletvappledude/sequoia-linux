@@ -5,7 +5,7 @@ XMT_VERSION="7ffdaab099220c603c39fbb4503739beee17768c"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 apt-get install -y --no-install-recommends plymouth-themes git ca-certificates
-git -C "$WORK/XMacTahoe" init
+git init "$WORK/XMacTahoe"
 git -C "$WORK/XMacTahoe" remote add origin https://github.com/chapdel/XMacTahoe.git
 git -C "$WORK/XMacTahoe" fetch --depth 1 origin "$XMT_VERSION"
 git -C "$WORK/XMacTahoe" checkout --detach FETCH_HEAD
