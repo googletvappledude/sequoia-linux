@@ -27,7 +27,7 @@ jobs:
       - name: Install build deps
         run: |
           apt-get install -y build-essential cmake extra-cmake-modules dpkg-dev file \
-            qt6-base-dev qt6-5compat-dev qt6-declarative-dev qt6-declarative-dev-tools libkf6windowsystem-dev \
+            qt6-base-dev qt6-base-private-dev qt6-5compat-dev qt6-declarative-dev qt6-declarative-dev-tools libkf6windowsystem-dev \
             liblayershellqtinterface-dev libplasma-dev plasma-workspace-dev \
             libkdecorations3-dev libkf6config-dev libkf6guiaddons-dev libkf6i18n-dev \
             libkf6configwidgets-dev libkf6coreaddons-dev libkf6iconthemes-dev \
